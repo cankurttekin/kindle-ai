@@ -1,3 +1,4 @@
+#
 import os
 import json
 import http.client
@@ -8,7 +9,7 @@ KINDLE_DOC_DIR = "/mnt/us/documents"
 CLIPPINGS_FILE = os.path.join(KINDLE_DOC_DIR, "My Clippings.txt")
 API_URL = "/v1beta/models/gemini-1.5-flash:generateContent"
 API_HOST = "generativelanguage.googleapis.com"
-API_KEY = "GEMINI_API_KEY"  # Replace GEMINI API KEY
+API_KEY = "GEMINI API KEY"
 
 # Terminal Colors
 RESET = "\033[0m"
@@ -21,14 +22,14 @@ BLUE = "\033[34m"
 RED = "\033[31m"
 
 def color_text(text, color):
-    """Apply ANSI color codes to text."""
+    """ ANSI color."""
     return f"{color}{text}{RESET}"
 
 
 def load_clippings():
     """
     Load clippings from the file and return a list of tuples (title, text).
-    Each clipping is assumed to be separated by "==========".
+    Each clipping is to be separated by "==========".
     """
     if not os.path.isfile(CLIPPINGS_FILE):
         return []
@@ -94,7 +95,7 @@ def select_clippings(clippings):
 
 def format_response(response_text):
     """
-    Format the AI response with better readability.
+    Format the AI response for better readability.
     """
     formatted = []
     for line in response_text.splitlines():
@@ -155,16 +156,17 @@ def generate_prompt_with_clippings(clippings, question):
 
 
 def main():
-    print(color_text("Welcome to Gemini AI Chat!", BOLD))
+    print(color_text("KINDLE CLIPPINGS AI ASSISTANT", BOLD))
+    print(color_text("github.com/cankurttekin/kindle-ai", BOLD))
     print(color_text("Type 'exit' to quit.", MAGENTA))
 
     clippings = load_clippings()
     if not clippings:
         print(color_text("No clippings found!", RED))
-        return
+        #return
 
     while True:
-        user_input = input(color_text("\nYour Question: ", BLUE))
+        user_input = input(color_text("\nQuestion: ", BLUE))
         if user_input.lower() == "exit":
             print(color_text("Goodbye!", GREEN))
             break
@@ -183,4 +185,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
