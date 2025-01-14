@@ -1,0 +1,11 @@
+{
+	"items": [
+		{
+		 "name": "AI Chat", 
+		 "priority": -99, 
+		 "action": "bin/aichat.sh",
+		 "status" : false,
+		 "internal" : "status Launching AI Chat - github.com/cankurttekin/kindle-ai"
+		}
+	]
+}
