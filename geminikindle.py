@@ -9,21 +9,24 @@ KINDLE_DOC_DIR = "/mnt/us/documents"
 CLIPPINGS_FILE = os.path.join(KINDLE_DOC_DIR, "My Clippings.txt")
 API_URL = "/v1beta/models/gemini-1.5-flash:generateContent"
 API_HOST = "generativelanguage.googleapis.com"
-API_KEY = "GEMINI API KEY"
+API_KEY = "GEMINI_API_KEY"
 
 # Terminal Colors
-RESET = "\033[0m"
-BOLD = "\033[1m"
-CYAN = "\033[36m"
-GREEN = "\033[32m"
-YELLOW = "\033[33m"
-MAGENTA = "\033[35m"
-BLUE = "\033[34m"
-RED = "\033[31m"
+RESET = "\033[0m"          # Reset all styles
+BOLD = "\033[1m"           # Bold text
+UNDERLINE = "\033[4m"      # Underlined text
+HIGHLIGHT = "\033[7m"      # Background highlight (reverse colors)
+BRIGHT = "\033[90m"        # Bright text for subtle emphasis
+DIM = "\033[2m"            # Dimmed text
 
-def color_text(text, color):
-    """ ANSI color."""
-    return f"{color}{text}{RESET}"
+# Colorless
+TEXT_PRIMARY = BOLD        # Primary text style
+TEXT_SECONDARY = BRIGHT    # Secondary text, subtle emphasis
+TEXT_HIGHLIGHT = HIGHLIGHT  # Highlight for prompts and headers
+
+def format_text(text, style):
+    """Apply ANSI styles to text."""
+    return f"{style}{text}{RESET}"
 
 
 def load_clippings():
@@ -62,20 +65,20 @@ def select_clippings(clippings):
         end = start + per_page
         page_clippings = clippings[start:end]
 
-        print(color_text("\nSelect a clipping to include (type the number):", BOLD))
+        print(format_text("\nSelect a clipping to include (type the number):", BOLD))
         for idx, (title, text) in enumerate(page_clippings, start=1):
-            print(f"{idx}. {color_text(title, CYAN)}\n   {color_text(text[:100] + '...', YELLOW)}")
+            print(f"{idx}. {format_text(title, TEXT_PRIMARY)}\n   {format_text(text[:100] + '...', TEXT_SECONDARY)}")
 
-        print(color_text("\nType 'next' for more, 'done' to finish, or 'exit' to quit.", MAGENTA))
-        user_input = input(color_text("Your Choice: ", BLUE)).strip().lower()
+        print(format_text("\nType 'next' for more, 'done' to finish, or 'exit' to quit.", TEXT_SECONDARY))
+        user_input = input(format_text("Your Choice: ", TEXT_HIGHLIGHT)).strip().lower()
 
         if user_input == "next":
             if end >= total:
-                print(color_text("No more clippings to show.", RED))
+                print(format_text("No more clippings to show.", DIM))
             else:
                 current_page += 1
         elif user_input == "exit":
-            print(color_text("Exiting selection.", RED))
+            print(format_text("Exiting selection.", DIM))
             break
         elif user_input == "done":
             break
@@ -84,25 +87,25 @@ def select_clippings(clippings):
                 choice = int(user_input)
                 if 1 <= choice <= len(page_clippings):
                     selected.append(page_clippings[choice - 1][1])
-                    print(color_text("Clipping added to prompt.", GREEN))
+                    print(format_text("Clipping added to prompt.", TEXT_PRIMARY))
                 else:
-                    print(color_text("Invalid choice. Try again.", RED))
+                    print(format_text("Invalid choice. Try again.", DIM))
             except ValueError:
-                print(color_text("Invalid input. Try again.", RED))
+                print(format_text("Invalid input. Try again.", DIM))
 
     return selected
 
 
 def format_response(response_text):
     """
-    Format the AI response for better readability.
+    Format the AI response with better readability.
     """
     formatted = []
     for line in response_text.splitlines():
         if line.startswith("- "):  # Bullet points
-            formatted.append(f"  {color_text('•', GREEN)} {line[2:]}")
+            formatted.append(f"  {format_text('•', TEXT_PRIMARY)} {line[2:]}")
         elif line.startswith("#"):  # Headings
-            formatted.append(color_text(line, CYAN))
+            formatted.append(format_text(line, UNDERLINE))
         else:  # Regular text
             formatted.append(line)
     return "\n".join(formatted)
@@ -137,10 +140,10 @@ def get_response_from_gemini(prompt):
             raw_response = "\n".join(part["text"] for part in response_data["candidates"][0]["content"]["parts"])
             return format_response(raw_response)
         else:
-            return f"{color_text('Error:', RED)} {response.status} - {response.reason}"
+            return f"{format_text('Error:', DIM)} {response.status} - {response.reason}"
 
     except Exception as e:
-        return f"{color_text('Error:', RED)} {e}"
+        return f"{format_text('Error:', DIM)} {e}"
 
 
 def generate_prompt_with_clippings(clippings, question):
@@ -156,34 +159,40 @@ def generate_prompt_with_clippings(clippings, question):
 
 
 def main():
-    print(color_text("KINDLE CLIPPINGS AI ASSISTANT", BOLD))
-    print(color_text("github.com/cankurttekin/kindle-ai", BOLD))
-    print(color_text("Type 'exit' to quit.", MAGENTA))
+    print("█" * 42)
+    print(format_text("KINDLE CLIPPINGS AI ASSISTANT", TEXT_PRIMARY))
+    print(format_text("github.com/cankurttekin/kindle-ai", TEXT_SECONDARY))
 
+    print(format_text("Type 'exit' to quit.", TEXT_SECONDARY))
+    print("█" * 42)
+    print()
     clippings = load_clippings()
     if not clippings:
-        print(color_text("No clippings found!", RED))
+        print(format_text("No clippings/highlights found in your device.", DIM))
         #return
 
     while True:
-        user_input = input(color_text("\nQuestion: ", BLUE))
+        print("")
+        user_input = input(format_text("Question:", TEXT_HIGHLIGHT))
         if user_input.lower() == "exit":
-            print(color_text("Goodbye!", GREEN))
+            print(format_text("Bye.", DIM))
             break
 
         selected_clippings = select_clippings(clippings)
         if not selected_clippings:
-            print(color_text("No clippings selected. Proceeding with question only.", YELLOW))
+            print(format_text("No clippings selected. Proceeding with question only.", TEXT_SECONDARY))
+            prompt = user_input
+        else:
+            prompt = generate_prompt_with_clippings(selected_clippings, user_input)
 
-        prompt = generate_prompt_with_clippings(selected_clippings, user_input)
         response = get_response_from_gemini(prompt)
-        print(color_text("\nGemini AI Response:", CYAN))
-        print("-" * 40)
+        print()
+        print(format_text("AI Response:", TEXT_HIGHLIGHT))
+        print("★" * 42)
         print(response)
-        print("-" * 40)
+        print("★" * 42)
 
 
 if __name__ == "__main__":
     main()
-
 
