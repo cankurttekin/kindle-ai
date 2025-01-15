@@ -6,6 +6,6 @@ Either copy aichat directory to extension/ directory on your kindle. Or you can 
  - kterm
  - python
 
-![](menu.jpg)
-![](question.jpg)
-![](response.jpg)
+![](assets/menu.jpg)
+![](assets/question.jpg)
+![](assets/response.jpg)
